@@ -23,6 +23,15 @@ function PopupApp() {
       const recent: GeneratedComment[] = data?.comments ?? [];
       if (recent.length > 0) setLastComment(recent[0]);
     });
+
+    // Restore any in-progress/last URL-generation result so it survives the
+    // popup closing (switching tabs, clicking outside) — the popup document
+    // fully unloads on close, so React state alone doesn't persist.
+    chrome.storage.local.get('lca_url_gen_state', (result) => {
+      const saved = result['lca_url_gen_state'];
+      if (saved?.postUrl) setPostUrl(saved.postUrl);
+      if (saved?.result) setUrlResult(saved.result);
+    });
   }, []);
 
   function showFlash(msg: string) {
@@ -74,13 +83,23 @@ function PopupApp() {
     setUrlGenError('');
     setUrlResult(null);
     try {
-      const result = await generateCommentsFromUrl(postUrl.trim());
+      const trimmedUrl = postUrl.trim();
+      const result = await generateCommentsFromUrl(trimmedUrl);
       setUrlResult(result);
       setUrlGenState('idle');
+      chrome.storage.local.set({ lca_url_gen_state: { postUrl: trimmedUrl, result } });
     } catch (err: any) {
       setUrlGenError(err?.message ?? 'Something went wrong. Is the backend running?');
       setUrlGenState('error');
     }
+  }
+
+  function handleResetUrlGen() {
+    setPostUrl('');
+    setUrlResult(null);
+    setUrlGenState('idle');
+    setUrlGenError('');
+    chrome.storage.local.remove('lca_url_gen_state');
   }
 
   function syncToDashboard() {
@@ -163,6 +182,26 @@ function PopupApp() {
           >
             {urlGenState === 'loading' ? 'Working...' : 'Generate'}
           </button>
+          {(urlResult || postUrl.trim()) && (
+            <button
+              onClick={handleResetUrlGen}
+              disabled={urlGenState === 'loading'}
+              title="Clear the URL and generated comments"
+              style={{
+                padding: '7px 12px',
+                background: 'transparent',
+                color: '#666',
+                border: '1px solid #c8d0d9',
+                borderRadius: '8px',
+                cursor: urlGenState === 'loading' ? 'not-allowed' : 'pointer',
+                fontSize: '12px',
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Reset
+            </button>
+          )}
         </div>
 
         {urlGenState === 'error' && (

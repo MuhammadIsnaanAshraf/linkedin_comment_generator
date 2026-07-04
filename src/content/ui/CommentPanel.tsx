@@ -17,6 +17,7 @@ function genId(): string {
 }
 
 export function CommentPanel({ post, postEl, onClose }: Props) {
+  console.log("🚀 ~ CommentPanel ~ post:", post)
   const [state, setState] = useState<PanelState>('loading');
   const [comment1, setComment1] = useState('');
   const [comment2, setComment2] = useState('');
@@ -32,12 +33,15 @@ export function CommentPanel({ post, postEl, onClose }: Props) {
     setErrorMsg('');
     try {
       const result = await generateComments(post);
+      console.log("🚀 ~ fetchComments ~ result:", result)
       setComment1(result.comment1);
       setComment2(result.comment2);
       setCategory(result.category as any ?? post.category);
       setState('loaded');
     } catch (err: any) {
+      console.error("🚀 ~ fetchComments ~ Error generating comments:", err);
       const msg = err?.message ?? 'Unknown error';
+      console.log("🚀 ~ fetchComments ~ msg:", msg)
       if (msg.includes('offline') || msg.includes('Failed to fetch')) {
         setErrorMsg('No internet connection');
       } else if (msg.includes('keys exhausted')) {

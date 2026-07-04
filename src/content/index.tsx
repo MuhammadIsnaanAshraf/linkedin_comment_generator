@@ -20,6 +20,8 @@ function findPostAncestor(el: Element): Element | null {
   return null;
 }
 
+const IDENTITY_MODULE_SELECTOR = '[componentkey="feedIdentityModuleComponentRef"]';
+
 // LinkedIn places the comment box OUTSIDE the [data-id] post element (as a sibling).
 // This walks up from the comment box and finds the post element in a sibling branch.
 function findNearestPost(el: Element): Element | null {
@@ -35,6 +37,24 @@ function findNearestPost(el: Element): Element | null {
     }
     container = container.parentElement;
   }
+
+  // LinkedIn's redesign dropped stable classes but kept a semantic
+  // componentkey on the per-post author/headline block. Walk up from the
+  // comment box until an ancestor's subtree contains that block — that
+  // ancestor is the actual post wrapper (header + body + comment box).
+  let identityContainer: Element | null = el;
+  for (let depth = 0; depth < 30; depth++) {
+    if (!identityContainer) {
+      console.warn('[LCA] findNearestPost: ran out of ancestors at depth', depth);
+      break;
+    }
+    if (identityContainer.querySelector(IDENTITY_MODULE_SELECTOR)) {
+      console.debug('[LCA] findNearestPost: identity module found at depth', depth, identityContainer);
+      return identityContainer;
+    }
+    identityContainer = identityContainer.parentElement;
+  }
+  console.warn('[LCA] findNearestPost: identity module never found within 30 levels, starting from', el);
 
   return null;
 }

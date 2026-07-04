@@ -1,7 +1,7 @@
 import { ExtractedPost } from '../types';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL = 'llama3-70b-8192';
+const MODEL = 'llama-3.3-70b-versatile';
 const KEY_RESET_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
 
 // Keys injected from .env at build time
@@ -9,6 +9,7 @@ const ENV_KEYS: string[] = [
   process.env.GROQ_KEY_1 as string,
   process.env.GROQ_KEY_2 as string,
 ].filter(Boolean);
+console.log("🚀 ~ ENV_KEYS:", ENV_KEYS)
 
 const SYSTEM_PROMPT = `You are a LinkedIn engagement expert. Generate exactly 2 distinct, human-sounding comments for the LinkedIn post provided.
 
@@ -64,7 +65,8 @@ async function callGroqAPI(
   });
 
   if (!response.ok) {
-    const err = new Error(`Groq API error: ${response.status}`) as any;
+    const bodyText = await response.text().catch(() => '');
+    const err = new Error(`Groq API error: ${response.status} ${bodyText}`) as any;
     err.status = response.status;
     throw err;
   }
@@ -132,23 +134,29 @@ export async function generateComments(
   if (ENV_KEYS.length === 0) {
     throw new Error('No Groq API keys configured. Add them to the .env file and rebuild the extension.');
   }
-
+  
+console.log("🚀 ~ generateComments ~ Starting comment generation for post:", post.postId)
   await checkAndResetKeyIndex();
   const currentIndex = await getCurrentKeyIndex();
+  console.log("🚀 ~ generateComments ~ currentIndex:", currentIndex)
 
   for (let attempt = 0; attempt < ENV_KEYS.length; attempt++) {
     const keyIndex = (currentIndex + attempt) % ENV_KEYS.length;
     try {
       const result = await callGroqAPI(ENV_KEYS[keyIndex], post);
+      console.log("🚀 ~ generateComments ~ result:", result)
       await saveKeyIndex(keyIndex);
       return result;
     } catch (error: any) {
+      console.error(`🚀 ~ generateComments ~ Error with key index ${keyIndex}:`, error);
       if (error.status === 429 || error.status === 401) {
+        console.log(`🚀 ~ generateComments ~ Key index ${keyIndex} is exhausted or invalid. Trying next key...`);
         continue;
       }
       throw error;
     }
   }
+  console.log("🚀 ~ generateComments ~ All keys exhausted or invalid")
 
   throw new Error('All Groq API keys exhausted or invalid');
 }

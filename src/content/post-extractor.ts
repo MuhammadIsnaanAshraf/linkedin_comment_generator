@@ -32,7 +32,21 @@ function extractText(postEl: Element): string {
   return '';
 }
 
+// LinkedIn's redesign hashes its CSS classes, but the author/headline block
+// keeps a semantic componentkey. Its first two <p> children are always the
+// name and headline, in that order.
+const IDENTITY_MODULE_SELECTOR = '[componentkey="feedIdentityModuleComponentRef"]';
+
+function getIdentityParagraphs(postEl: Element): HTMLElement[] {
+  const identityModule = postEl.querySelector(IDENTITY_MODULE_SELECTOR);
+  console.debug('[LCA] getIdentityParagraphs: postEl=', postEl, 'identityModule found=', !!identityModule);
+  return identityModule ? Array.from(identityModule.querySelectorAll('p')) : [];
+}
+
 function extractAuthorName(postEl: Element): string {
+  const nameP = getIdentityParagraphs(postEl)[0];
+  if (nameP?.textContent?.trim()) return nameP.textContent.trim();
+
   const nameEl = postEl.querySelector(
     '.update-components-actor__name span[aria-hidden="true"]'
   );
@@ -43,6 +57,9 @@ function extractAuthorName(postEl: Element): string {
 }
 
 function extractAuthorHeadline(postEl: Element): string {
+  const headlineP = getIdentityParagraphs(postEl)[1];
+  if (headlineP?.textContent?.trim()) return headlineP.textContent.trim();
+
   const headlineEl = postEl.querySelector(
     '.update-components-actor__description span[aria-hidden="true"]'
   );

@@ -54,6 +54,7 @@ function CommentButtonInner({ postEl, post }: Props) {
     // Re-extract only if we find meaningful post text; otherwise use the prop
     const extracted = extractPost(postEl);
     const freshPost = (extracted?.postText?.length ?? 0) > 0 ? extracted! : post;
+    console.log("🚀 ~ openPanel ~ freshPost:", freshPost)
 
     panelRootRef.current.render(
       <CommentPanel post={freshPost} postEl={postEl} onClose={closePanel} />

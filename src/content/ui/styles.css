@@ -1,0 +1,247 @@
+/* LinkedIn AI Comment Assistant — scoped styles */
+:root {
+  --lca-bg: #ffffff;
+  --lca-border: #e0e0e0;
+  --lca-primary: #0077b5;
+  --lca-primary-hover: #005f91;
+  --lca-text: #1a1a1a;
+  --lca-text-muted: #666666;
+  --lca-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --lca-radius: 12px;
+}
+
+.lca-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--lca-bg);
+  border: 1px solid var(--lca-border);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  transition: background 150ms, border-color 150ms;
+  flex-shrink: 0;
+}
+
+.lca-btn:hover {
+  background: #f3f6f9;
+  border-color: var(--lca-primary);
+}
+
+.lca-btn:hover .lca-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.lca-btn svg {
+  width: 16px;
+  height: 16px;
+  color: var(--lca-primary);
+}
+
+.lca-btn.lca-loading svg {
+  animation: lca-spin 0.8s linear infinite;
+}
+
+.lca-btn.lca-error svg {
+  color: #e11d48;
+}
+
+.lca-error-dot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  background: #e11d48;
+  border-radius: 50%;
+}
+
+.lca-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 150ms;
+  z-index: 10000;
+}
+
+.lca-wrapper {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+}
+
+/* Panel */
+.lca-panel {
+  position: absolute;
+  z-index: 9999;
+  width: 320px;
+  background: var(--lca-bg);
+  border: 1px solid var(--lca-border);
+  border-radius: var(--lca-radius);
+  box-shadow: var(--lca-shadow);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  color: var(--lca-text);
+  overflow: hidden;
+}
+
+.lca-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--lca-border);
+}
+
+.lca-panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--lca-text);
+  margin: 0;
+}
+
+.lca-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--lca-text-muted);
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.lca-close-btn:hover {
+  color: var(--lca-text);
+}
+
+.lca-panel-body {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lca-comment-card {
+  border: 1px solid var(--lca-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lca-comment-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--lca-text);
+}
+
+.lca-use-btn {
+  align-self: flex-end;
+  background: var(--lca-primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms;
+}
+
+.lca-use-btn:hover {
+  background: var(--lca-primary-hover);
+}
+
+.lca-panel-actions {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 2px;
+}
+
+.lca-regen-btn {
+  background: none;
+  border: 1px solid var(--lca-border);
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 12px;
+  color: var(--lca-text-muted);
+  cursor: pointer;
+  transition: border-color 150ms, color 150ms;
+}
+
+.lca-regen-btn:hover {
+  border-color: var(--lca-primary);
+  color: var(--lca-primary);
+}
+
+.lca-panel-footer {
+  padding: 8px 16px;
+  border-top: 1px solid var(--lca-border);
+  font-size: 11px;
+  color: var(--lca-text-muted);
+  text-align: center;
+}
+
+/* Skeleton loading */
+.lca-skeleton {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.lca-skeleton-line {
+  height: 12px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: lca-shimmer 1.2s infinite;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.lca-skeleton-line:last-child {
+  width: 60%;
+  margin-bottom: 0;
+}
+
+.lca-error-msg {
+  color: #e11d48;
+  font-size: 13px;
+  text-align: center;
+  padding: 8px 0;
+}
+
+.lca-retry-btn {
+  display: block;
+  margin: 8px auto 0;
+  background: none;
+  border: 1px solid #e11d48;
+  color: #e11d48;
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+@keyframes lca-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes lca-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

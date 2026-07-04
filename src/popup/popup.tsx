@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { GeneratedComment } from '../types';
+import { generateCommentsFromUrl, GenerateFromUrlResult } from '../services/backend-service';
 
 function PopupApp() {
   const [enabled, setEnabled] = useState(true);
@@ -8,6 +9,12 @@ function PopupApp() {
   const [copied, setCopied] = useState<1 | 2 | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [flash, setFlash] = useState('');
+
+  const [postUrl, setPostUrl] = useState('');
+  const [urlGenState, setUrlGenState] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [urlGenError, setUrlGenError] = useState('');
+  const [urlResult, setUrlResult] = useState<GenerateFromUrlResult | null>(null);
+  const [urlCopied, setUrlCopied] = useState<1 | 2 | null>(null);
 
   useEffect(() => {
     chrome.storage.local.get('lca_data', (result) => {
@@ -48,6 +55,34 @@ function PopupApp() {
     setTimeout(() => setCopied(null), 2000);
   }
 
+  function copyUrlComment(text: string, which: 1 | 2) {
+    navigator.clipboard.writeText(text).catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    });
+    setUrlCopied(which);
+    setTimeout(() => setUrlCopied(null), 2000);
+  }
+
+  async function handleGenerateFromUrl() {
+    if (!postUrl.trim()) return;
+    setUrlGenState('loading');
+    setUrlGenError('');
+    setUrlResult(null);
+    try {
+      const result = await generateCommentsFromUrl(postUrl.trim());
+      setUrlResult(result);
+      setUrlGenState('idle');
+    } catch (err: any) {
+      setUrlGenError(err?.message ?? 'Something went wrong. Is the backend running?');
+      setUrlGenState('error');
+    }
+  }
+
   function syncToDashboard() {
     setIsSyncing(true);
     chrome.runtime.sendMessage({ type: 'SYNC_TO_DASHBOARD' }, () => {
@@ -86,6 +121,92 @@ function PopupApp() {
             {enabled ? 'Enabled' : 'Disabled'}
           </span>
         </label>
+      </div>
+
+      {/* Divider */}
+      <div style={{ height: 1, background: '#e0e0e0', marginBottom: '14px' }} />
+
+      {/* Generate from URL */}
+      <div style={{ marginBottom: '14px' }}>
+        <p style={{ margin: '0 0 8px', fontWeight: 600, fontSize: '12px', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          Generate From Post URL
+        </p>
+        <div style={{ display: 'flex', gap: '6px', marginBottom: '8px' }}>
+          <input
+            type="text"
+            value={postUrl}
+            onChange={(e) => setPostUrl(e.target.value)}
+            placeholder="Paste a LinkedIn post URL..."
+            style={{
+              flex: 1,
+              padding: '7px 10px',
+              borderRadius: '8px',
+              border: '1px solid #c8d0d9',
+              fontSize: '12px',
+              boxSizing: 'border-box',
+            }}
+          />
+          <button
+            onClick={handleGenerateFromUrl}
+            disabled={urlGenState === 'loading' || !postUrl.trim()}
+            style={{
+              padding: '7px 14px',
+              background: urlGenState === 'loading' ? '#b0c4cf' : '#0077b5',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: urlGenState === 'loading' || !postUrl.trim() ? 'not-allowed' : 'pointer',
+              fontSize: '12px',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {urlGenState === 'loading' ? 'Working...' : 'Generate'}
+          </button>
+        </div>
+
+        {urlGenState === 'error' && (
+          <p style={{ margin: '0 0 8px', fontSize: '12px', color: '#d33', lineHeight: 1.4 }}>
+            {urlGenError}
+          </p>
+        )}
+
+        {urlResult && (
+          <div>
+            {([
+              { text: urlResult.comment1, which: 1 as const },
+              { text: urlResult.comment2, which: 2 as const },
+            ]).map(({ text, which }) => (
+              <div key={which} style={{
+                background: '#f3f6f8',
+                borderRadius: '8px',
+                padding: '10px 12px',
+                marginBottom: '8px',
+                border: '1px solid #e0e7ed',
+              }}>
+                <p style={{ margin: '0 0 8px', fontSize: '12px', lineHeight: '1.5', color: '#1d2226' }}>
+                  {text}
+                </p>
+                <button
+                  onClick={() => copyUrlComment(text, which)}
+                  style={{
+                    padding: '4px 12px',
+                    background: urlCopied === which ? '#22c55e' : '#0077b5',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '12px',
+                    cursor: 'pointer',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    transition: 'background 0.2s',
+                  }}
+                >
+                  {urlCopied === which ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Divider */}

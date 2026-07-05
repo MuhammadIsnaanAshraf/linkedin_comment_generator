@@ -1,4 +1,4 @@
-const BACKEND_URL = 'http://localhost:3333';
+const BACKEND_URL = 'https://comment-generator-scrapper.vercel.app';
 
 export interface GenerateFromUrlResult {
   comment1: string;

@@ -4,6 +4,7 @@ export interface GenerateFromUrlResult {
   comment1: string;
   comment2: string;
   category: string;
+  videoTranscript?: string;
   post: {
     authorName: string;
     postText: string;

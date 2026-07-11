@@ -37,6 +37,8 @@ module.exports = {
     new webpack.DefinePlugin({
       'process.env.GROQ_KEY_1': JSON.stringify(process.env.GROQ_KEY_1 || ''),
       'process.env.GROQ_KEY_2': JSON.stringify(process.env.GROQ_KEY_2 || ''),
+      // Backend base URL for auth + comment generation. Override in extension/.env.
+      'process.env.BACKEND_URL': JSON.stringify(process.env.BACKEND_URL || ''),
     }),
     new MiniCssExtractPlugin({
       filename: '[name].css',

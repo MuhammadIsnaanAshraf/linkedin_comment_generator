@@ -176,14 +176,34 @@ function watchCommentBoxes(): void {
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
+let started = false;
+
+// Only inject the ✨ button once the user is logged in AND the extension is
+// enabled. Auth is checked by the presence of a stored session; the backend
+// still verifies the token on any request it receives.
+function maybeStart(): void {
+  if (started) return;
+  chrome.storage.local.get(['lca_data', 'lca_auth'], (result) => {
+    if (started) return;
+    const loggedIn = Boolean(result['lca_auth']?.refresh_token);
+    if (!loggedIn) return;
+    const settings = result['lca_data']?.settings;
+    if (settings && settings.enabled === false) return;
+    started = true;
+    initObserver(processPost);
+    watchCommentBoxes();
+  });
+}
+
 function init(): void {
   if (typeof chrome === 'undefined' || !chrome.storage) return;
 
-  chrome.storage.local.get('lca_data', (result) => {
-    const settings = result['lca_data']?.settings;
-    if (settings && settings.enabled === false) return;
-    initObserver(processPost);
-    watchCommentBoxes();
+  maybeStart();
+
+  // If the user logs in (from the popup) while this tab is already open, start
+  // injecting without requiring a manual reload.
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'local' && changes['lca_auth']) maybeStart();
   });
 }
 

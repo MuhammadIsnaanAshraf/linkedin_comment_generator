@@ -10,7 +10,8 @@
   ],
   "host_permissions": [
     "https://www.linkedin.com/*",
-    "https://comment-generator-scrapper.vercel.app/*"
+    "https://comment-generator-scrapper.vercel.app/*",
+    "http://localhost:3333/*"
   ],
   "background": {
     "service_worker": "background.js",

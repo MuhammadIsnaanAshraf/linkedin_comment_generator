@@ -47,6 +47,20 @@ export interface ExtensionSettings {
   enabled: boolean;
 }
 
+export interface AuthUser {
+  id: string;
+  email?: string;
+}
+
+// The session the extension persists locally (chrome.storage.local['lca_auth']).
+// Tokens are issued by Supabase via the backend; expires_at is a unix ts (secs).
+export interface AuthSession {
+  user: AuthUser;
+  access_token: string;
+  refresh_token: string;
+  expires_at: number;
+}
+
 export interface GroqMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
